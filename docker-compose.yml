@@ -1,0 +1,34 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        ports:
+            - '3000:3000'
+        environment:
+            - DATABASE_URL=postgresql://postgres:password@db:5432/talkfirst
+            - MAIN_API_URL=${MAIN_API_URL}
+            - CRON_SECRET=${CRON_SECRET}
+        depends_on:
+            - db
+
+    db:
+        container_name: talkfirst-support-db-1
+        image: postgres:15-alpine
+        environment:
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=password
+            - POSTGRES_DB=talkfirst
+        ports:
+            - '5433:5432'
+        volumes:
+            - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+            - postgres_data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U postgres']
+            interval: 5s
+            timeout: 5s
+            retries: 5
+
+volumes:
+    postgres_data:

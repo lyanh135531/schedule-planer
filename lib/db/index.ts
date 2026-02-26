@@ -3,10 +3,10 @@ import postgres from 'postgres';
 import * as schema from './schema';
 
 // Get database URL from environment
-const connectionString = process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL || 'postgres://postgres:postgres@localhost:5432/postgres';
 
-if (!connectionString) {
-	throw new Error('DATABASE_URL environment variable is not set');
+if (!process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
+	console.warn('⚠️ DATABASE_URL environment variable is not set. Using fallback for build process.');
 }
 
 // Create PostgreSQL connection

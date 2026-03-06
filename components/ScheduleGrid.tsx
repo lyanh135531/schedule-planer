@@ -174,12 +174,14 @@ export default function ScheduleGrid({ initialCourses, onRefresh, startDate, end
 																				</div>
 																			)}
 																			{course.sub_class_name && (
-																				<div className="text-[9px] font-bold text-black/50 tracking-tighter mb-0.5">
+																				<div className="text-[9px] font-bold text-black/50 tracking-tighter mb-0.5 truncate w-full">
 																					{course.sub_class_name}
 																				</div>
 																			)}
-																			<div className="text-[11px] font-bold leading-tight text-center text-black tracking-tight line-clamp-2 h-[2.5em] flex items-center justify-center">
-																				{course.syllabus || course.course_name || course.course_code}
+																			<div className="text-[11px] font-bold leading-tight text-center text-black tracking-tight h-[2.5em] flex items-center justify-center overflow-hidden">
+																				<span className="line-clamp-2">
+																					{course.syllabus || course.course_name || course.course_code}
+																				</span>
 																			</div>
 																		</div>
 

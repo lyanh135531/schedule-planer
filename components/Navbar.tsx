@@ -11,7 +11,7 @@ const NAV_ITEMS = [
 	{ name: 'Course Setup', href: '/dashboard/settings', icon: Settings },
 ];
 
-export default function Navbar() {
+export default function Navbar({ userEmail }: { userEmail?: string }) {
 	const pathname = usePathname();
 
 	const handleLogout = async () => {
@@ -26,7 +26,7 @@ export default function Navbar() {
 	};
 
 	return (
-		<nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[95%]">
+		<nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full px-4 md:px-6">
 			<div className="glass-panel rounded-md px-6 py-3 flex items-center justify-between">
 				{/* Logo / Brand */}
 				<Link href="/dashboard" className="flex items-center gap-2 group">
@@ -70,7 +70,9 @@ export default function Navbar() {
 							<User className="w-4 h-4 text-white" />
 						</div>
 						<div className="flex flex-col pr-1">
-							<span className="text-xs font-bold text-white leading-none">Admin</span>
+							<span className="text-xs font-bold text-white leading-none">
+								{userEmail?.split('@')[0] || 'User'}
+							</span>
 						</div>
 					</div>
 

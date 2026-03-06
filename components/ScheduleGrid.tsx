@@ -177,10 +177,15 @@ export default function ScheduleGrid({ initialCourses, onRefresh, startDate }: S
 																					{course.sub_class_name}
 																				</div>
 																			)}
-																			<div className="text-[11px] font-bold leading-tight text-center text-black tracking-tight h-[2.5em] flex items-center justify-center overflow-hidden">
+																			<div className="text-[11px] font-bold leading-tight text-center text-black tracking-tight h-[2.5em] flex flex-col items-center justify-center overflow-hidden">
 																				<span className="line-clamp-2">
 																					{course.syllabus || course.course_name || course.course_code}
 																				</span>
+																				{course.status === 'ENROLLED' && (
+																					<span className="text-[9px] text-green-700 bg-white/60 px-1 py-0.5 rounded shadow-sm mt-0.5 leading-none">
+																						✓ ENROLLED
+																					</span>
+																				)}
 																			</div>
 																		</div>
 

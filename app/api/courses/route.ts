@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { db } from '@/lib/db';
-import { users } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { users, userCoursePlans } from '@/lib/db/schema';
+import { eq, and } from 'drizzle-orm';
 import { TalkFirstService } from '@/lib/talkfirst-api';
 import { decrypt } from '@/lib/crypto';
 
@@ -81,7 +81,31 @@ export async function GET() {
 			);
 		}
 
-		// 5. Return response and refresh cookie
+		// 5. Override `ENROLLED` status based on our database (userCoursePlans)
+		const enrolledPlans = await db
+			.select({ externalCourseId: userCoursePlans.externalCourseId })
+			.from(userCoursePlans)
+			.where(
+				and(
+					eq(userCoursePlans.userId, userId),
+					eq(userCoursePlans.status, 'registered')
+				)
+			);
+
+		const enrolledIds = new Set(enrolledPlans.map(p => p.externalCourseId));
+
+		if (courses.flexibleClasses) {
+			courses.flexibleClasses = courses.flexibleClasses.map((cls: import('@/lib/types').TalkFirstFlexibleClass) => {
+				const isActuallyEnrolled = enrolledIds.has(cls.id);
+				return {
+					...cls,
+					status: isActuallyEnrolled ? 'ENROLLED' : undefined,
+					hasEnrolled: isActuallyEnrolled
+				};
+			});
+		}
+
+		// 6. Return response and refresh cookie
 		const response = NextResponse.json(courses);
 
 		response.cookies.set('accessToken', accessToken as string, {

@@ -300,13 +300,18 @@ export default function CourseModal({ course, isOpen, onClose, onSuccess }: Cour
 				{/* Actions */}
 				<div className="px-6 pb-6">
 					<DialogFooter className="flex gap-2 sm:justify-end">
-						{registrationInfo ? (
+						{registrationInfo || isEnrolled ? (
 							<Button
 								onClick={handleRemove}
-								disabled={loading}
-								className="w-full h-11 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold text-[10px] uppercase tracking-widest rounded-md transition-all"
+								disabled={loading || isEnrolled}
+								className={cn(
+									"w-full h-11 border font-bold text-[10px] uppercase tracking-widest rounded-md transition-all",
+									isEnrolled 
+										? "bg-gray-500/10 text-gray-500 border-gray-500/20 cursor-not-allowed" 
+										: "bg-red-500/10 hover:bg-red-500/20 text-red-400 border-red-500/20"
+								)}
 							>
-								{loading ? 'Removing...' : 'Remove from Plan'}
+								{isEnrolled ? 'Registration Locked' : loading ? 'Removing...' : 'Remove from Plan'}
 							</Button>
 						) : (
 							<div className="flex gap-2 w-full">

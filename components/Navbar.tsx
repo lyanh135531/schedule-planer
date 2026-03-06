@@ -27,7 +27,7 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
 
 	return (
 		<nav className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-full px-4 md:px-6">
-			<div className="glass-panel rounded-md px-6 py-3 flex items-center justify-between">
+			<div className="w-full mx-auto rounded-md py-3 flex items-center justify-between">
 				{/* Logo / Brand */}
 				<Link href="/dashboard" className="flex items-center gap-2 group">
 					<div className="w-9 h-9 rounded-md bg-orange-600 flex items-center justify-center shadow-[0_0_20px_rgba(232,90,33,0.3)] group-hover:scale-105 transition-all duration-300">
@@ -39,8 +39,8 @@ export default function Navbar({ userEmail }: { userEmail?: string }) {
 					</div>
 				</Link>
 
-				{/* Nav Links */}
-				<div className="hidden md:flex items-center gap-1 bg-white/5 p-1 rounded-md border border-white/5">
+				{/* Nav Links - Centered */}
+				<div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-1 bg-white/5 p-1 rounded-md border border-white/5">
 					{NAV_ITEMS.map((item) => {
 						const Icon = item.icon;
 						const isActive = pathname === item.href;

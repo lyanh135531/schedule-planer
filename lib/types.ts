@@ -82,6 +82,6 @@ export interface TalkFirstClassResponse {
   summary: TalkFirstSummary[];
   totalClasses: number;
   flexibleClasses: TalkFirstFlexibleClass[];
-  fixedClasses: any[];
+  fixedClasses: unknown[];
   canBooking: boolean;
 }

@@ -9,7 +9,6 @@ interface ScheduleGridProps {
 	initialCourses: CourseSlot[];
 	onRefresh?: () => void;
 	startDate?: string;
-	endDate?: string;
 }
 
 const COURSE_COLORS: Record<string, string> = {
@@ -24,7 +23,7 @@ const COURSE_PRIORITY: Record<string, number> = {
 	'SKILLACTIVITIES': 3,
 };
 
-export default function ScheduleGrid({ initialCourses, onRefresh, startDate, endDate }: ScheduleGridProps) {
+export default function ScheduleGrid({ initialCourses, onRefresh, startDate }: ScheduleGridProps) {
 	const [selectedCourse, setSelectedCourse] = useState<CourseSlot | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
 

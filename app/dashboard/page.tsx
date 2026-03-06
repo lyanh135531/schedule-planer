@@ -9,12 +9,11 @@ export default function DashboardPage() {
 	const [courses, setCourses] = useState<CourseSlot[]>([]);
 	const [rawClasses, setRawClasses] = useState<TalkFirstFlexibleClass[]>([]);
 	const [startDate, setStartDate] = useState<string>('');
-	const [endDate, setEndDate] = useState<string>('');
 	const [loading, setLoading] = useState(true);
 
 	const fetchDataRef = useRef(false);
 
-	const mapAndSetCourses = useCallback((classes: TalkFirstFlexibleClass[], plansData: any) => {
+	const mapAndSetCourses = useCallback((classes: TalkFirstFlexibleClass[], plansData: { primary?: { externalCourseId: string }[], backup?: { externalCourseId: string, priorityOrder?: number }[] }) => {
 		// Flatten plans for easy lookup
 		const planMap: Record<string, 'primary' | 'backup'> = {};
 		plansData.primary?.forEach((p: { externalCourseId: string }) => planMap[p.externalCourseId] = 'primary');
@@ -73,7 +72,6 @@ export default function DashboardPage() {
 			const plansData = await plansRes.json();
 
 			if (courseResponse.startDate) setStartDate(courseResponse.startDate);
-			if (courseResponse.endDate) setEndDate(courseResponse.endDate);
 
 			if (courseResponse.flexibleClasses && Array.isArray(courseResponse.flexibleClasses)) {
 				setRawClasses(courseResponse.flexibleClasses);
@@ -130,7 +128,6 @@ export default function DashboardPage() {
 				initialCourses={courses}
 				onRefresh={fetchPlansOnly}
 				startDate={startDate}
-				endDate={endDate}
 			/>
 		</div>
 	);

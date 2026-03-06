@@ -97,7 +97,7 @@ export class TalkFirstService {
 	 * @param token Access token
 	 * @param date Monday of the week in YYYY-MM-DD format. If omitted, uses current week's Monday.
 	 */
-	static async getClasses(token: string, date?: string): Promise<any> {
+	static async getClasses(token: string, date?: string): Promise<import('./types').TalkFirstClassResponse | null> {
 		let targetDate = date;
 
 		if (!targetDate) {

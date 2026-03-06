@@ -59,7 +59,7 @@ export const userCoursePlans = pgTable('user_course_plans', {
 	endTime: text('end_time'),
 	planType: text('plan_type').notNull(), // 'primary' | 'backup'
 	priorityOrder: integer('priority_order'), // NULL for primary, 1,2,3... for backup
-	linkedPrimaryId: uuid('linked_primary_id').references((): any => userCoursePlans.id, { onDelete: 'cascade' }), // backup links to primary
+	linkedPrimaryId: uuid('linked_primary_id').references((): import('drizzle-orm/pg-core').AnyPgColumn => userCoursePlans.id, { onDelete: 'cascade' }), // backup links to primary
 	status: text('status').notNull().default('planned'), // 'planned', 'registered', 'failed', 'skipped'
 	registeredAt: timestamp('registered_at', { withTimezone: true }),
 	failedReason: text('failed_reason'),

@@ -135,7 +135,6 @@ File `.env.local`:
 
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5432/talkfirst
-MAIN_API_URL=https://your-api.com
 CRON_SECRET=your_secret
 ```
 

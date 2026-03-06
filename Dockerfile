@@ -12,14 +12,12 @@ RUN npm ci
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+# Copy npm-installed node_modules from deps stage to ensure clean Alpine-compatible dependencies
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# Learn more here: https://nextjs.org/telemetry
-# Uncomment the following line in case you want to disable telemetry during the build.
-# ENV NEXT_TELEMETRY_DISABLED 1
-ENV DATABASE_URL=postgres://postgres:postgres@localhost:5432/postgres
+# Disable telemetry during build
+ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN npm run build
 
@@ -27,9 +25,13 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
+# Install tini for proper signal handling and tzdata for timezone support
+RUN apk add --no-cache tini tzdata
+
 ENV NODE_ENV production
-# Uncomment the following line in case you want to disable telemetry during runtime.
-# ENV NEXT_TELEMETRY_DISABLED 1
+ENV TZ Asia/Ho_Chi_Minh
+# Disable telemetry during runtime
+ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -51,6 +53,12 @@ EXPOSE 3000
 
 ENV PORT 3000
 
+# Healthcheck to ensure the app is responding
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+	CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/auth/login || exit 1
+
+# Use tini as entrypoint
+ENTRYPOINT ["/sbin/tini", "--"]
+
 # server.js is created by next build from the standalone output
-# https://nextjs.org/docs/pages/api-reference/next-config-js/output
 CMD ["node", "server.js"]

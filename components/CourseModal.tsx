@@ -28,7 +28,9 @@ interface Plan {
 	day: string;
 	startTime: string;
 	endTime: string;
+	syllabus: string;
 	planType: 'primary' | 'backup';
+	linkedPrimaryId?: string;
 }
 
 export default function CourseModal({ course, isOpen, onClose, onSuccess }: CourseModalProps) {
@@ -57,11 +59,16 @@ export default function CourseModal({ course, isOpen, onClose, onSuccess }: Cour
 				return;
 			}
 
-			// Check for time conflicts with primary plans
+			// Check for conflicts with primary plans (Time OR Syllabus)
 			const conflict = data.primary.find((p: Plan) => {
+				// 1. Syllabus conflict (Same lesson)
+				if (course.syllabus && p.syllabus === course.syllabus) {
+					return true;
+				}
+
+				// 2. Time conflict (Same day + overlap)
 				if (p.day !== course.day) return false;
 
-				// Standard overlap check
 				const s1 = course.start_time;
 				const e1 = course.end_time;
 				const s2 = p.startTime;
@@ -79,7 +86,7 @@ export default function CourseModal({ course, isOpen, onClose, onSuccess }: Cour
 		} catch (err) {
 			console.error('Status check error:', err);
 		}
-	}, [course.day, course.end_time, course.id, course.start_time]);
+	}, [course.day, course.end_time, course.id, course.start_time, course.syllabus]);
 
 	// Use effect to fetch status when modal opens
 	useEffect(() => {
@@ -151,7 +158,10 @@ export default function CourseModal({ course, isOpen, onClose, onSuccess }: Cour
 				}
 
 				body.linkedPrimaryId = linkTo.id;
-				body.priorityOrder = 1;
+
+				// Calculate next priority order globally (across ALL backups, not just per-primary)
+				const totalBackupsCount = existingPlans.backup.length;
+				body.priorityOrder = totalBackupsCount + 1;
 			}
 
 			const response = await fetch('/api/plans', {
@@ -179,77 +189,149 @@ export default function CourseModal({ course, isOpen, onClose, onSuccess }: Cour
 		}
 	};
 
-	return (
-		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent className="bg-[#2a2a2a] text-white border-gray-700 sm:max-w-[425px]">
-				<DialogHeader>
-					<DialogTitle className={cn(
-						course.course_type_name === 'MAIN-CLASS' && "text-[#BAE6FD]",
-						course.course_type_name === 'FREE-TALK' && "text-[#FEF08A]",
-						course.course_type_name === 'SKILLACTIVITIES' && "text-[#D8B4FE]",
-						!['MAIN-CLASS', 'FREE-TALK', 'SKILLACTIVITIES'].includes(course.course_type_name) && "text-orange-500"
-					)}>
-						{course.syllabus || course.course_name}
-					</DialogTitle>
-					<DialogDescription className="text-gray-400">
-						{course.lecturer}
-					</DialogDescription>
-				</DialogHeader>
+	// Derive display values
+	const courseTypeLabel = course.course_type_name === 'MAIN-CLASS' ? 'Main Class'
+		: course.course_type_name === 'FREE-TALK' ? 'Free Talk'
+			: 'Skill Activities';
 
-				{conflictCourse && !registrationInfo && (
-					<div className="bg-red-500/10 border border-red-500/20 p-3 rounded-lg flex items-center gap-3">
-						<div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-						<p className="text-[11px] font-bold text-red-500 uppercase tracking-tighter text-red-500">
-							Conflicts with: {conflictCourse.courseName}
+	const typeColors = {
+		'MAIN-CLASS': { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20', dot: 'bg-amber-400', accent: 'from-amber-500/20' },
+		'FREE-TALK': { bg: 'bg-sky-500/10', text: 'text-sky-400', border: 'border-sky-500/20', dot: 'bg-sky-400', accent: 'from-sky-500/20' },
+		'SKILLACTIVITIES': { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20', dot: 'bg-emerald-400', accent: 'from-emerald-500/20' },
+	};
+	const tc = typeColors[course.course_type_name as keyof typeof typeColors] || typeColors['SKILLACTIVITIES'];
+
+	const isEnrolled = course.status === 'ENROLLED';
+
+	return (
+		<Dialog open={isOpen} onOpenChange={onClose} >
+			<DialogContent showCloseButton={false} className="bg-[#161923] text-white border-white/10 sm:max-w-[460px] rounded-md p-0 overflow-hidden gap-0">
+
+				{/* Colored Top Accent */}
+				<div className={cn("h-1 w-full bg-gradient-to-r", tc.accent, "to-transparent")} />
+
+				{/* Header */}
+				<div className="px-6 pt-5 pb-4 space-y-3">
+					<DialogHeader className="space-y-2">
+						<div className="flex items-start justify-between gap-3">
+							<div className="flex-1 min-w-0 space-y-1.5">
+								<div className="flex flex-wrap items-center gap-2">
+									{/* SubClassType Badge */}
+									{course.sub_class_name && (
+										<span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest border", tc.bg, tc.text, tc.border)}>
+											<div className={cn("w-1.5 h-1.5 rounded-full", tc.dot)} />
+											{course.sub_class_name}
+										</span>
+									)}
+									{/* Course Type */}
+									<span className="text-[9px] font-bold text-gray-600 uppercase tracking-widest">
+										{courseTypeLabel}
+									</span>
+								</div>
+								<DialogTitle className="text-lg font-black text-white tracking-tight leading-snug">
+									{course.syllabus || course.course_name}
+								</DialogTitle>
+								<DialogDescription className="sr-only">Course details for {course.syllabus || course.course_name}</DialogDescription>
+							</div>
+
+							{/* Status Indicator */}
+							{(isEnrolled || registrationInfo) && (
+								<div className={cn(
+									"shrink-0 px-2.5 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest border",
+									isEnrolled ? "bg-green-500/10 text-green-400 border-green-500/20" :
+										registrationInfo?.type === 'primary' ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
+											"bg-blue-500/10 text-blue-400 border-blue-500/20"
+								)}>
+									{isEnrolled ? 'Enrolled' : registrationInfo?.type === 'primary' ? 'Primary' : 'Backup'}
+								</div>
+							)}
+						</div>
+					</DialogHeader>
+
+					{/* Lesson Description */}
+					{course.lesson_description && (
+						<p className="text-[11px] text-gray-500 leading-relaxed line-clamp-2">
+							{course.lesson_description}
 						</p>
+					)}
+				</div>
+
+				{/* Info Grid */}
+				<div className="px-6 pb-4">
+					<div className="grid grid-cols-2 gap-3">
+						{/* Lecturer */}
+						<div className="bg-white/[0.03] rounded-md p-3 border border-white/5">
+							<p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1">Lecturer</p>
+							<p className="text-sm font-bold text-white truncate">{course.lecturer}</p>
+						</div>
+						{/* Room */}
+						<div className="bg-white/[0.03] rounded-md p-3 border border-white/5">
+							<p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1">Room</p>
+							<p className="text-sm font-bold text-white truncate">{course.room}</p>
+						</div>
+						{/* Day */}
+						<div className="bg-white/[0.03] rounded-md p-3 border border-white/5">
+							<p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1">Day</p>
+							<p className="text-sm font-bold text-white">{course.day}</p>
+						</div>
+						{/* Time */}
+						<div className="bg-white/[0.03] rounded-md p-3 border border-white/5">
+							<p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest mb-1">Time</p>
+							<p className="text-sm font-bold text-white">{course.time_slot}</p>
+						</div>
+					</div>
+				</div>
+
+
+				{/* Conflict Warning */}
+				{conflictCourse && !registrationInfo && (
+					<div className="px-6 pb-4">
+						<div className="bg-red-500/5 border border-red-500/15 p-3 rounded-md flex items-center gap-3">
+							<div className="w-2 h-2 rounded-full bg-red-500 animate-pulse shrink-0" />
+							<p className="text-[10px] font-bold text-red-400">
+								{course.syllabus && conflictCourse.syllabus === course.syllabus
+									? `Duplicate lesson: ${course.syllabus}`
+									: `Time conflict with: ${conflictCourse.syllabus || conflictCourse.courseName}`}
+							</p>
+						</div>
 					</div>
 				)}
 
-				<div className="grid gap-4 py-4">
-					<div className="grid grid-cols-4 items-center gap-4">
-						<span className="text-sm font-bold text-gray-500">Day:</span>
-						<span className="col-span-3 text-sm">{course.day}</span>
-					</div>
-					<div className="grid grid-cols-4 items-center gap-4">
-						<span className="text-sm font-bold text-gray-500">Time:</span>
-						<span className="col-span-3 text-sm">{course.time_slot}</span>
-					</div>
-					<div className="grid grid-cols-4 items-center gap-4">
-						<span className="text-sm font-bold text-gray-500">Room:</span>
-						<span className="col-span-3 text-sm">{course.room}</span>
-					</div>
-				</div>
-				<DialogFooter className="flex gap-2 sm:justify-end">
-					{registrationInfo ? (
-						<Button
-							onClick={handleRemove}
-							disabled={loading}
-							className="w-full bg-red-600/10 hover:bg-red-600/20 text-red-500 border border-red-500/30"
-						>
-							{loading ? 'Removing...' : 'Remove from Plan'}
-						</Button>
-					) : (
-						<>
+				{/* Actions */}
+				<div className="px-6 pb-6">
+					<DialogFooter className="flex gap-2 sm:justify-end">
+						{registrationInfo ? (
 							<Button
-								onClick={() => handleAddToPlan('backup')}
+								onClick={handleRemove}
 								disabled={loading}
-								className="bg-blue-600 hover:bg-blue-700 text-white"
+								className="w-full h-11 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold text-[10px] uppercase tracking-widest rounded-md transition-all"
 							>
-								Add as Backup
+								{loading ? 'Removing...' : 'Remove from Plan'}
 							</Button>
-							<Button
-								onClick={() => handleAddToPlan('primary')}
-								disabled={loading || !!conflictCourse}
-								className={cn(
-									"bg-orange-600 hover:bg-orange-700 text-white",
-									!!conflictCourse && "opacity-50 grayscale cursor-not-allowed"
-								)}
-							>
-								{loading ? 'Adding...' : 'Add to Primary'}
-							</Button>
-						</>
-					)}
-				</DialogFooter>
+						) : (
+							<div className="flex gap-2 w-full">
+								<Button
+									onClick={() => handleAddToPlan('backup')}
+									disabled={loading}
+									className="flex-1 h-11 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 font-bold text-[10px] uppercase tracking-widest rounded-md transition-all"
+								>
+									Add as Backup
+								</Button>
+								<Button
+									onClick={() => handleAddToPlan('primary')}
+									disabled={loading || !!conflictCourse}
+									className={cn(
+										"flex-1 h-11 bg-orange-600 hover:bg-orange-700 text-white font-bold text-[10px] uppercase tracking-widest rounded-md shadow-[0_6px_20px_rgba(232,90,33,0.25)] transition-all",
+										!!conflictCourse && "opacity-40 grayscale cursor-not-allowed shadow-none"
+									)}
+								>
+									{loading ? 'Adding...' : 'Add Primary'}
+								</Button>
+							</div>
+						)}
+					</DialogFooter>
+				</div>
+
 			</DialogContent>
 		</Dialog>
 	);

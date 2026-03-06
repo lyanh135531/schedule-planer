@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { userCoursePlans } from '@/lib/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 import { cookies } from 'next/headers';
 
 /**
@@ -45,6 +45,27 @@ export async function DELETE(
 			await db
 				.delete(userCoursePlans)
 				.where(eq(userCoursePlans.linkedPrimaryId, id));
+		}
+
+		// Renumber remaining backups so priority orders stay contiguous (1, 2, 3...)
+		if (plan[0].planType === 'backup') {
+			const remainingBackups = await db
+				.select({ id: userCoursePlans.id })
+				.from(userCoursePlans)
+				.where(
+					and(
+						eq(userCoursePlans.userId, userId),
+						eq(userCoursePlans.planType, 'backup')
+					)
+				)
+				.orderBy(asc(userCoursePlans.priorityOrder));
+
+			for (let i = 0; i < remainingBackups.length; i++) {
+				await db
+					.update(userCoursePlans)
+					.set({ priorityOrder: i + 1 })
+					.where(eq(userCoursePlans.id, remainingBackups[i].id));
+			}
 		}
 
 		return NextResponse.json({ message: 'Plan deleted successfully' });

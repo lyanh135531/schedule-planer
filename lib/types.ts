@@ -10,6 +10,7 @@ export type CourseSlot = {
   course_code: string;
   course_name: string;
   course_type_name: string; // 'MAIN-CLASS', 'FREE-TALK', 'SKILLACTIVITIES'
+  sub_class_name?: string; // e.g., 'Vocabulary', 'Pronunciation'
   lecturer: string;
   room: string;
   day: string;
@@ -20,6 +21,8 @@ export type CourseSlot = {
   status?: string;
   syllabus?: string;
   plan_type?: 'primary' | 'backup';
+  priority_order?: number;
+  lesson_description?: string;
 };
 
 export type PreRegistration = {
@@ -33,3 +36,52 @@ export type PreRegistration = {
   submitted_at: string | null;
   created_at: string;
 };
+
+// TalkFirst API response types
+export interface TalkFirstSummary {
+  programClassId: string;
+  programClassName: string;
+  maxClassesPerWeek: number;
+  enrolledClassesThisWeek: number;
+}
+
+export interface TalkFirstLessonInfo {
+  lesson: string;
+  description: string;
+  studentDocKey: string;
+}
+
+export interface TalkFirstSubClassType {
+  name: string;
+  color: string;
+  bgcolor: string;
+}
+
+export interface TalkFirstFlexibleClass {
+  id: string;
+  timeSlot: string;
+  programClassId: string;
+  date: string;
+  teacherName: string;
+  startTime: string;
+  endTime: string;
+  room: string;
+  lesson: string;
+  currentStudents: number;
+  maxStudents: number;
+  hasEnrolled: boolean;
+  timeType: string;
+  mode: string;
+  lessonInfo: TalkFirstLessonInfo;
+  subClassType: TalkFirstSubClassType;
+}
+
+export interface TalkFirstClassResponse {
+  startDate: string;
+  endDate: string;
+  summary: TalkFirstSummary[];
+  totalClasses: number;
+  flexibleClasses: TalkFirstFlexibleClass[];
+  fixedClasses: any[];
+  canBooking: boolean;
+}

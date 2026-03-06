@@ -195,7 +195,6 @@ File `.env.local` (cho local development):
 
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5432/talkfirst
-MAIN_API_URL=https://your-api.com
 CRON_SECRET=your_secret_key
 ```
 
@@ -211,18 +210,17 @@ CRON_SECRET=your_secret_key
 Sau khi deploy thành công:
 
 1. **Tích hợp TalkFirst API**
-   - Cập nhật `MAIN_API_URL` trong `.env.local`
-   - Tạo API route để sync courses từ TalkFirst
+    - Tạo API route để sync courses từ TalkFirst
 
 2. **Phát triển UI**
-   - Tạo trang settings cho user requirements
-   - Tạo course planning interface
-   - Implement backup course selection
+    - Tạo trang settings cho user requirements
+    - Tạo course planning interface
+    - Implement backup course selection
 
 3. **Testing**
-   - Test time conflict detection
-   - Test backup priority logic
-   - Test registration flow
+    - Test time conflict detection
+    - Test backup priority logic
+    - Test registration flow
 
 ---
 

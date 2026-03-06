@@ -2,7 +2,7 @@ import React from 'react';
 
 const Footer = () => {
 	return (
-		<footer className="py-8 text-center mt-auto">
+		<footer className="py-4 text-center">
 			<p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.5em]">
 				TalkFirst Premium Support System
 			</p>

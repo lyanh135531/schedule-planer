@@ -21,9 +21,9 @@ const TYPE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = 
 };
 
 const TYPE_COLORS: Record<string, { bg: string; icon: string }> = {
-	'MAIN-CLASS': { bg: 'bg-[#BAE6FD]/10', icon: 'text-[#BAE6FD]/80' },
-	'FREE-TALK': { bg: 'bg-[#FEF08A]/10', icon: 'text-[#FEF08A]/80' },
-	'SKILLACTIVITIES': { bg: 'bg-[#D8B4FE]/10', icon: 'text-[#D8B4FE]/80' },
+	'MAIN-CLASS': { bg: 'bg-[#FEF08A]/10', icon: 'text-[#FEF08A]/80' },
+	'FREE-TALK': { bg: 'bg-[#BAE6FD]/10', icon: 'text-[#BAE6FD]/80' },
+	'SKILLACTIVITIES': { bg: 'bg-[#BBF7D0]/10', icon: 'text-[#BBF7D0]/80' },
 };
 
 export default function SettingsPage() {
@@ -107,7 +107,7 @@ export default function SettingsPage() {
 					<Button
 						onClick={handleSave}
 						disabled={saving}
-						className="h-9 px-5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-[11px] uppercase tracking-wider rounded-lg transition-all"
+						className="h-9 px-5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-[11px] uppercase tracking-wider rounded-md transition-all"
 					>
 						{saving ? 'Saving...' : 'Save Settings'}
 					</Button>
@@ -118,7 +118,7 @@ export default function SettingsPage() {
 			<div className="space-y-3 px-6 md:px-0">
 				{message && (
 					<div className={cn(
-						"p-3 rounded-lg text-[11px] font-bold text-center animate-in fade-in slide-in-from-top-1 border",
+						"p-3 rounded-md text-[11px] font-bold text-center animate-in fade-in slide-in-from-top-1 border",
 						message.type === 'success' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
 					)}>
 						{message.text}
@@ -131,11 +131,11 @@ export default function SettingsPage() {
 						return (
 							<div
 								key={item.courseTypeId}
-								className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-all"
+								className="flex items-center justify-between p-4 rounded-md bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-all"
 							>
 								<div className="flex items-center gap-4">
 									<div className={cn(
-										"w-10 h-10 rounded-lg flex items-center justify-center",
+										"w-10 h-10 rounded-md flex items-center justify-center",
 										(TYPE_COLORS[item.courseTypeName] || { bg: 'bg-orange-500/10' }).bg
 									)}>
 										<Icon className={cn(
@@ -149,7 +149,7 @@ export default function SettingsPage() {
 								</div>
 
 								{/* Minimal Counter */}
-								<div className="flex items-center gap-1 bg-black/20 p-1 rounded-lg border border-white/5">
+								<div className="flex items-center gap-1 bg-black/20 p-1 rounded-md border border-white/5">
 									<button
 										onClick={() => adjustCount(item.courseTypeId, -1)}
 										className="w-8 h-8 rounded-md flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all"

@@ -1,10 +1,11 @@
-import { pgTable, uuid, text, integer, timestamp, time, date, jsonb, unique } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, date, jsonb, unique } from 'drizzle-orm/pg-core';
 
 // ==================== USERS ====================
 export const users = pgTable('users', {
 	id: uuid('id').primaryKey().defaultRandom(),
-	username: text('username').notNull().unique(),
+	email: text('email').notNull().unique(),
 	password: text('password'),
+	accessToken: text('access_token'),
 	refreshToken: text('refresh_token'),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

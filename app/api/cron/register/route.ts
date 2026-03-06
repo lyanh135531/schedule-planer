@@ -4,6 +4,7 @@ import { users, userCoursePlans, userCourseSettings, courseTypes, submissionHist
 import { eq, asc } from 'drizzle-orm';
 import { TalkFirstService } from '@/lib/talkfirst-api';
 import { isOverlapping } from '@/lib/utils';
+import { decrypt } from '@/lib/crypto';
 
 /**
  * GET /api/cron/register
@@ -28,7 +29,7 @@ export async function POST(req: Request) {
 		const results = await Promise.all(
 			allUsers.map(async (user) => {
 				const userResults = await processUserRegistration(user.id, allCourseTypes);
-				return { userId: user.id, username: user.username, ...userResults };
+				return { userId: user.id, email: user.email, ...userResults };
 			})
 		);
 
@@ -56,15 +57,15 @@ async function processUserRegistration(userId: string, courseTypesList: (typeof 
 	// 2. Get all plans for this user
 	const plans = await db.select().from(userCoursePlans).where(eq(userCoursePlans.userId, userId));
 
-	// 3. Login to get token
+	// 3. Authenticate (Reuse or Login)
 	const user = (await db.select().from(users).where(eq(users.id, userId)))[0];
 	if (!user) throw new Error(`User not found: ${userId}`);
 
-	const token = await TalkFirstService.login(user.username, user.password || undefined);
-	if (!token) return { status: 'failed', reason: 'Auth failed' };
+	let token = user.accessToken;
+	let tokens = null;
 
 	// Track successfully registered courses to prevent overlaps
-	const registeredCourses: any[] = [];
+	const registeredCourses: (typeof userCoursePlans.$inferSelect)[] = [];
 	const registrationStats = { success: 0, failed: 0 };
 
 	// 4. Register PRIMARY courses in order
@@ -76,7 +77,33 @@ async function processUserRegistration(userId: string, courseTypesList: (typeof 
 
 		for (const plan of primaryPlans) {
 			console.log(`[Cron] Registering Primary: ${plan.courseName}`);
-			const result = await TalkFirstService.registerCourse(plan.externalCourseId, token);
+
+			// Try with existing token or login if missing
+			if (!token) {
+				const decryptedPassword = user.password ? decrypt(user.password) : undefined;
+				tokens = await TalkFirstService.login(user.email, decryptedPassword);
+				if (tokens) {
+					token = tokens.accessToken;
+					// Update DB
+					await db.update(users).set({ accessToken: token, refreshToken: tokens.refreshToken, updatedAt: new Date() }).where(eq(users.id, userId));
+				}
+			}
+
+			if (!token) return { status: 'failed', reason: 'Auth failed' };
+
+			let result = await TalkFirstService.registerCourse(plan.externalCourseId, token as string);
+
+			// If fails with potential 401 (mock logic might need adjustment but assuming 401 for simplicity)
+			// In real world, registerCourse should return status code
+			if (!result.success && result.message.includes('401')) {
+				const decryptedPassword = user.password ? decrypt(user.password) : undefined;
+				tokens = await TalkFirstService.login(user.email, decryptedPassword);
+				if (tokens) {
+					token = tokens.accessToken;
+					await db.update(users).set({ accessToken: token, refreshToken: tokens.refreshToken, updatedAt: new Date() }).where(eq(users.id, userId));
+					result = await TalkFirstService.registerCourse(plan.externalCourseId, token);
+				}
+			}
 
 			await logSubmission(userId, plan.id!, result);
 
@@ -120,7 +147,7 @@ async function processUserRegistration(userId: string, courseTypesList: (typeof 
 				}
 
 				console.log(`[Cron] Registering Backup: ${backup.courseName}`);
-				const result = await TalkFirstService.registerCourse(backup.externalCourseId, token);
+				const result = await TalkFirstService.registerCourse(backup.externalCourseId, token as string);
 
 				await logSubmission(userId, backup.id!, result);
 
@@ -145,7 +172,7 @@ async function processUserRegistration(userId: string, courseTypesList: (typeof 
 	return { status: 'completed', stats: registrationStats };
 }
 
-async function logSubmission(userId: string, planId: string, result: any) {
+async function logSubmission(userId: string, planId: string, result: { success: boolean; message: string; apiResponse?: Record<string, unknown> }) {
 	await db.insert(submissionHistory).values({
 		userId,
 		planId,

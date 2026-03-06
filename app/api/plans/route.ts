@@ -158,6 +158,15 @@ export async function POST(req: Request) {
 				);
 
 			for (const plan of existingPlans) {
+				// 1. Syllabus conflict
+				if (syllabus && plan.syllabus === syllabus) {
+					return NextResponse.json(
+						{ message: `You have already added this lesson (${syllabus}) to your plan.` },
+						{ status: 409 }
+					);
+				}
+
+				// 2. Time conflict
 				if (plan.day === day && plan.startTime && plan.endTime) {
 					// Check time overlap
 					if (
@@ -207,7 +216,7 @@ export async function POST(req: Request) {
  * DELETE /api/plans
  * Clear all user's plans
  */
-export async function DELETE() {
+export async function DELETE(req: Request) {
 	try {
 		const cookieStore = await cookies();
 		const userId = cookieStore.get('user_id')?.value;
@@ -216,9 +225,21 @@ export async function DELETE() {
 			return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 		}
 
-		await db.delete(userCoursePlans).where(eq(userCoursePlans.userId, userId));
+		const { searchParams } = new URL(req.url);
+		const type = searchParams.get('type'); // 'primary' or 'backup'
 
-		return NextResponse.json({ message: 'All plans cleared' });
+		if (type === 'primary' || type === 'backup') {
+			await db.delete(userCoursePlans).where(
+				and(
+					eq(userCoursePlans.userId, userId),
+					eq(userCoursePlans.planType, type)
+				)
+			);
+			return NextResponse.json({ message: `All ${type} plans cleared` });
+		} else {
+			await db.delete(userCoursePlans).where(eq(userCoursePlans.userId, userId));
+			return NextResponse.json({ message: 'All plans cleared' });
+		}
 	} catch (error) {
 		console.error('Clear plans error:', error);
 		return NextResponse.json({ message: 'Internal server error' }, { status: 500 });

@@ -1,5 +1,7 @@
 services:
     app:
+        image: ${HARBOR_IMAGE:-talkfirst-support:latest}
+        # keep build context for local development
         build:
             context: .
             dockerfile: Dockerfile
@@ -7,8 +9,8 @@ services:
             - '3000:3000'
         environment:
             - DATABASE_URL=postgresql://postgres:password@db:5432/talkfirst
-            - MAIN_API_URL=${MAIN_API_URL}
             - CRON_SECRET=${CRON_SECRET}
+            - TZ=Asia/Ho_Chi_Minh
         depends_on:
             - db
 
@@ -29,6 +31,26 @@ services:
             interval: 5s
             timeout: 5s
             retries: 5
+
+    cron:
+        image: alpine:latest
+        restart: unless-stopped
+        depends_on:
+            - app
+        environment:
+            - TZ=Asia/Ho_Chi_Minh
+            - CRON_SECRET=${CRON_SECRET}
+            # Default: Sunday at 9 AM (Vietnam Time)
+            - CRON_SCHEDULE=${CRON_SCHEDULE:-0 9 * * 0}
+            - API_URL=http://app:3000/api/cron/register
+        command: >
+            sh -c "
+            apk add --no-cache tzdata &&
+            cp /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime &&
+            echo \"Asia/Ho_Chi_Minh\" > /etc/timezone &&
+            echo \"$${CRON_SCHEDULE} wget --no-verbose --tries=1 --spider --header='Authorization: Bearer $${CRON_SECRET}' --post-data='' $${API_URL}\" > /var/spool/cron/crontabs/root &&
+            crond -f -L /dev/stdout
+            "
 
 volumes:
     postgres_data:

@@ -10,11 +10,17 @@
         "db:wait": "tsx --env-file=.env.local scripts/wait-for-db.ts",
         "db:seed": "tsx --env-file=.env.local scripts/setup-db.ts",
         "db:setup": "npm run db:wait && npm run db:seed",
+        "db:generate": "drizzle-kit generate",
+        "db:push": "node --env-file=.env.local node_modules/drizzle-kit/bin.cjs push",
+        "db:studio": "node --env-file=.env.local node_modules/drizzle-kit/bin.cjs studio",
+        "db:migrate": "tsx --env-file=.env.local scripts/migrate.ts",
         "docker:up": "docker-compose up -d --build",
         "docker:down": "docker-compose down",
-        "docker:restart": "npm run docker:down && npm run docker:up && npm run db:setup"
+        "docker:restart": "npm run docker:down && npm run docker:up && npm run db:setup",
+        "cron:trigger": "sh scripts/trigger-cron.sh"
     },
     "dependencies": {
+        "@neondatabase/serverless": "^1.0.2",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "drizzle-orm": "^0.45.1",
@@ -25,7 +31,8 @@
         "react": "19.2.3",
         "react-dom": "19.2.3",
         "sonner": "^2.0.7",
-        "tailwind-merge": "^3.4.0"
+        "tailwind-merge": "^3.4.0",
+        "zod": "^4.3.6"
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4",

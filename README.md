@@ -140,8 +140,27 @@ Create a `.env.local` file:
 
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5432/talkfirst
-MAIN_API_URL=https://your-talkfirst-api.com
 CRON_SECRET=your_secret_key
+# Docker-only: Change schedule (Default: Sunday 9 AM GMT+7)
+# CRON_SCHEDULE=0 2 * * 0
+```
+
+## 📅 Cron Job Scheduling
+
+The automated registration job (`/api/cron/register`) can be scheduled:
+
+### 1. Self-Hosted (Docker)
+
+The `docker-compose.yml` includes a `cron` service. You can change the schedule using the `CRON_SCHEDULE` environment variable in your `.env` file (Crontab format, uses UTC).
+
+### 2. Vercel
+
+Standard `vercel.json` is included. You can customize the `schedule` field there.
+
+### 3. Manual Trigger
+
+```bash
+npm run cron:trigger
 ```
 
 ## 🐳 Docker Configuration

@@ -1,19 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Trash2, Calendar, Clock, MapPin, CheckCircle2, LayoutGrid } from 'lucide-react';
+import { BookOpen, Calendar, CheckCircle2, Clock, LayoutGrid, MapPin, ShieldCheck, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 import {
 	Dialog,
 	DialogContent,
 	DialogDescription,
-	DialogFooter,
 	DialogHeader,
 	DialogTitle,
-	DialogTrigger,
+	DialogTrigger
 } from '@/components/ui/dialog';
 
 interface CartItem {
@@ -40,16 +39,22 @@ interface RequirementStatus {
 	required: number;
 }
 
+const COURSE_TYPE_COLORS: Record<string, { dot: string; bg: string; text: string; border: string }> = {
+	'MAIN-CLASS': { dot: 'bg-[#FEF08A] shadow-[0_0_8px_#FEF08A]', bg: 'bg-yellow-400/10', text: 'text-yellow-300', border: 'border-yellow-400/20' },
+	'FREE-TALK': { dot: 'bg-[#BAE6FD] shadow-[0_0_8px_#BAE6FD]', bg: 'bg-sky-400/10', text: 'text-sky-300', border: 'border-sky-400/20' },
+	'SKILLACTIVITIES': { dot: 'bg-[#BBF7D0] shadow-[0_0_8px_#BBF7D0]', bg: 'bg-green-400/10', text: 'text-green-300', border: 'border-green-400/20' },
+};
+
 export default function CartTable() {
 	const [items, setItems] = useState<CartItem[]>([]);
 	const [requirements, setRequirements] = useState<RequirementStatus[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+	const [deletingId, setDeletingId] = useState<string | null>(null);
 
 	const fetchData = async () => {
 		setLoading(true);
 		try {
-			// Fetch plans and settings in parallel
 			const [plansRes, settingsRes] = await Promise.all([
 				fetch('/api/plans'),
 				fetch('/api/settings/course-requirements')
@@ -60,7 +65,6 @@ export default function CartTable() {
 			const plansData = await plansRes.json();
 			const settingsData = await settingsRes.json();
 
-			// Map plans
 			const allItems: CartItem[] = [
 				...plansData.primary.map((p: CartItem) => ({ ...p, status: 'Primary' })),
 				...plansData.backup.map((b: CartItem) => ({
@@ -70,7 +74,6 @@ export default function CartTable() {
 			];
 			setItems(allItems);
 
-			// Map requirements
 			const reqStatus = (settingsData.settings || []).map((s: { courseTypeName: string; courseTypeDisplayName: string; requiredCount: number; }) => ({
 				name: s.courseTypeName,
 				displayName: s.courseTypeDisplayName,
@@ -78,7 +81,6 @@ export default function CartTable() {
 				required: s.requiredCount
 			}));
 			setRequirements(reqStatus);
-
 		} catch (err) {
 			console.error('Fetch data error:', err);
 		} finally {
@@ -91,219 +93,258 @@ export default function CartTable() {
 	}, []);
 
 	const handleDelete = async (id: string) => {
+		setDeletingId(id);
 		try {
 			const response = await fetch(`/api/plans/${id}`, { method: 'DELETE' });
 			if (!response.ok) throw new Error('Failed to delete');
-			await fetchData(); // Refresh all data to update progress
+			await fetchData();
 		} catch (err) {
 			console.error('Delete error:', err);
+		} finally {
+			setDeletingId(null);
 		}
 	};
 
-	const handleClearAll = async () => {
+	const handleClearAll = async (type?: 'primary' | 'backup') => {
 		setIsClearModalOpen(false);
 		try {
-			const response = await fetch('/api/plans', { method: 'DELETE' });
-			if (!response.ok) throw new Error('Failed to clear all');
+			const url = type ? `/api/plans?type=${type}` : '/api/plans';
+			const response = await fetch(url, { method: 'DELETE' });
+			if (!response.ok) throw new Error('Failed to clear plans');
 			await fetchData();
 		} catch (err) {
-			console.error('Clear all error:', err);
+			console.error('Clear plans error:', err);
 		}
 	};
+
+	const primaryItems = items.filter(i => i.planType === 'primary');
+	const backupItems = items.filter(i => i.planType === 'backup');
 
 	if (loading) return (
 		<div className="flex flex-col items-center justify-center py-20 animate-pulse">
 			<div className="w-12 h-12 rounded-full border-4 border-orange-600/20 border-t-orange-600 animate-spin mb-4" />
-			<p className="text-gray-500 font-black uppercase tracking-widest text-xs">Analyzing plan...</p>
+			<p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Analyzing plan...</p>
 		</div>
 	);
 
 	return (
-		<div className="space-y-12">
-			{/* Progress Section */}
-			<div className="flex flex-wrap gap-4 items-center bg-white/5 p-4 rounded-2xl border border-white/5">
-				<div className="flex items-center gap-2 mr-4 border-r border-white/10 pr-4">
-					<LayoutGrid className="w-4 h-4 text-orange-600" />
-					<span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Requirement Status</span>
-				</div>
+		<div className="flex-1 flex flex-col gap-4 overflow-hidden">
+
+			{/* Stats + Progress Bar Row */}
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
 				{requirements.map((req) => {
 					const isComplete = req.current >= req.required;
+					const pct = Math.min(100, Math.round((req.current / req.required) * 100));
+					const colors = COURSE_TYPE_COLORS[req.name];
 					return (
-						<div key={req.name} className="flex items-center gap-2">
-							<span className="text-[10px] font-bold text-gray-400 uppercase">{req.displayName}:</span>
-							<div className="flex items-center gap-1.5">
-								<span className={cn("text-xs font-black", isComplete ? "text-green-500" : "text-white")}>
-									{req.current}/{req.required}
-								</span>
-								{isComplete ? (
-									<CheckCircle2 className="w-3 h-3 text-green-500" />
-								) : (
-									<div className="w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse" />
-								)}
+						<div key={req.name} className={cn(
+							"relative overflow-hidden rounded-md p-4 border transition-all",
+							isComplete
+								? "bg-green-500/5 border-green-500/20"
+								: "bg-white/5 border-white/10"
+						)}>
+							<div className="flex items-start justify-between mb-3">
+								<div>
+									<p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">{req.displayName}</p>
+									<p className={cn("text-2xl font-black", isComplete ? "text-green-400" : "text-white")}>
+										{req.current}
+										<span className="text-sm font-bold text-gray-600 ml-1">/ {req.required}</span>
+									</p>
+								</div>
+								{isComplete
+									? <CheckCircle2 className="w-5 h-5 text-green-500 mt-0.5" />
+									: <div className={cn("w-2 h-2 rounded-full mt-2 animate-pulse", colors?.dot.split(' ')[0] || 'bg-orange-500')} />
+								}
+							</div>
+							<div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+								<div
+									className={cn("h-full rounded-full transition-all duration-700", isComplete ? "bg-green-500" : "bg-orange-600")}
+									style={{ width: `${pct}%` }}
+								/>
 							</div>
 						</div>
 					);
 				})}
 			</div>
 
-			{/* Course List Section */}
-			<div className="space-y-4">
-				<div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-2 mb-2">
-					<div className="space-y-0.5">
-						<h2 className="text-lg font-black text-white uppercase tracking-tight">Weekly Plan</h2>
-						<p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Selected classes summary</p>
+			{/* Course List */}
+			<div className="flex-1 overflow-hidden flex flex-col bg-white/[0.02] rounded-md border border-white/10">
+				{/* Table Header */}
+				<div className="flex items-center justify-between px-5 py-3 border-b border-white/10 shrink-0">
+					<div className="flex items-center gap-3">
+						<BookOpen className="w-4 h-4 text-orange-500/70" />
+						<div>
+							<h2 className="text-sm font-bold text-white">Weekly Plan</h2>
+							{items.length > 0 && (
+								<p className="text-[10px] text-gray-600">
+									{primaryItems.length} primary &nbsp;·&nbsp; {backupItems.length} backup
+								</p>
+							)}
+						</div>
 					</div>
 
-					<div className="flex flex-wrap items-center gap-4">
-						{items.length > 0 && (
+					{items.length > 0 && (
+						<div className="flex items-center gap-2">
 							<Dialog open={isClearModalOpen} onOpenChange={setIsClearModalOpen}>
 								<DialogTrigger asChild>
-									<Button
-										variant="ghost"
-										className="h-8 text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-red-500 hover:bg-white/5 px-3 rounded-lg border border-white/5 transition-all"
-									>
-										<Trash2 className="w-3 h-3 mr-2" />
-										Clear All Plans
+									<Button variant="ghost" className="h-8 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-red-500 hover:bg-red-500/5 px-2 rounded-md border border-white/5 transition-all">
+										<Trash2 className="w-3 h-3 md:mr-2" />
+										<span className="hidden md:inline">Clear All</span>
 									</Button>
 								</DialogTrigger>
-								<DialogContent className="glass-panel border-white/10 text-white max-w-[400px] rounded-3xl p-8">
+								<DialogContent className="glass-panel border-white/10 text-white max-w-[420px] rounded-md p-8">
 									<DialogHeader className="space-y-4 pt-4">
-										<div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto sm:mx-0">
-											<Trash2 className="w-6 h-6 text-red-500" />
-										</div>
 										<div className="space-y-1">
-											<DialogTitle className="text-xl font-black uppercase tracking-tight">Clear Plan?</DialogTitle>
-											<DialogDescription className="text-gray-500 text-xs font-bold leading-relaxed">
-												This action will permanently delete all courses from your current weekly schedule. You cannot undo this.
+											<DialogTitle className="text-xl font-black uppercase tracking-tight">Clear Schedule?</DialogTitle>
+											<DialogDescription className="text-gray-500 text-xs font-medium leading-relaxed">
+												Choose which part of your schedule you want to clear. This action cannot be undone.
 											</DialogDescription>
 										</div>
 									</DialogHeader>
-									<DialogFooter className="mt-8 flex flex-row gap-3">
+									<div className="grid grid-cols-1 gap-3 mt-8">
 										<Button
-											variant="ghost"
-											onClick={() => setIsClearModalOpen(false)}
-											className="flex-1 h-11 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 rounded-xl border border-white/5"
+											onClick={() => handleClearAll('primary')}
+											className="w-full h-12 bg-orange-600/10 hover:bg-orange-600/20 text-orange-500 font-bold text-[10px] uppercase tracking-widest rounded-md border border-orange-500/20"
 										>
-											Cancel
+											Clear All Primary
 										</Button>
 										<Button
-											onClick={handleClearAll}
-											className="flex-1 h-11 bg-red-500 hover:bg-red-600 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
+											onClick={() => handleClearAll('backup')}
+											className="w-full h-12 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-bold text-[10px] uppercase tracking-widest rounded-md border border-blue-500/20"
 										>
-											Yes, Clear All
+											Clear All Backup
 										</Button>
-									</DialogFooter>
+										<div className="h-px bg-white/5 my-1" />
+										<Button
+											onClick={() => handleClearAll()}
+											className="w-full h-12 bg-red-500 hover:bg-red-600 text-white font-bold text-[10px] uppercase tracking-widest rounded-md shadow-[0_10px_20px_rgba(239,68,68,0.2)]"
+										>
+											Yes, Clear Everything
+										</Button>
+										<Button variant="ghost" onClick={() => setIsClearModalOpen(false)} className="w-full h-10 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-white rounded-md">Cancel</Button>
+									</div>
 								</DialogContent>
 							</Dialog>
-						)}
-
-						{items.length > 0 && (
-							<div className="flex items-center gap-3 bg-white/5 border border-white/5 px-3 py-1.5 rounded-xl">
-								<div className="flex flex-col items-center border-r border-white/10 pr-3">
-									<span className="text-[14px] font-black text-white leading-none">{items.length}</span>
-									<span className="text-[7px] font-bold text-gray-500 uppercase tracking-tighter">Total</span>
-								</div>
-								<div className="flex flex-col items-center border-r border-white/10 pr-3">
-									<span className="text-[14px] font-black text-orange-600 leading-none">{items.filter(i => i.planType === 'primary').length}</span>
-									<span className="text-[7px] font-bold text-gray-400 uppercase tracking-tighter">Primary</span>
-								</div>
-								<div className="flex flex-col items-center">
-									<span className="text-[14px] font-black text-blue-600 leading-none">{items.filter(i => i.planType === 'backup').length}</span>
-									<span className="text-[7px] font-bold text-gray-400 uppercase tracking-tighter">Backup</span>
-								</div>
-							</div>
-						)}
-					</div>
+						</div>
+					)}
 				</div>
 
-				{items.length === 0 ? (
-					<div className="bg-white/5 border border-white/5 rounded-3xl py-16 flex flex-col items-center justify-center text-center space-y-4">
-						<div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center text-gray-700">
-							<LayoutGrid className="w-8 h-8" />
-						</div>
-						<div className="space-y-1">
-							<h3 className="text-md font-bold text-white uppercase">Your plan is empty</h3>
-							<p className="text-xs text-gray-500 max-w-xs mx-auto">Explore the schedule to build your routine</p>
-						</div>
-						<Link href="/dashboard">
-							<Button className="bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl px-6 h-10 border border-white/10">
-								Return to Schedule
-							</Button>
-						</Link>
-					</div>
-				) : (
-					<div className="grid grid-cols-1 gap-2">
-						{items.map((item) => (
-							<div
-								key={item.id}
-								className={cn(
-									"flex items-center gap-4 bg-white/5 hover:bg-white/10 p-3 rounded-xl transition-all group",
-									item.planType === 'backup' && "opacity-60 border-l-2 border-dashed border-gray-600 pl-4"
-								)}
-							>
-								{/* Type Indicator */}
-								<div className={cn(
-									"flex items-center px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border backdrop-blur-md transition-all group-hover:scale-105",
-									item.planType === 'primary'
-										? "bg-orange-700/20 text-orange-700 border-orange-600/30 shadow-[0_0_15px_rgba(194,65,12,0.15)]"
-										: "bg-blue-700/20 text-blue-700 border-blue-600/30 shadow-[0_0_15px_rgba(29,78,216,0.1)]"
-								)}>
-									<div className={cn(
-										"w-1.5 h-1.5 rounded-full mr-2 animate-pulse",
-										item.courseTypeName === 'MAIN-CLASS' && "bg-[#BAE6FD] shadow-[0_0_8px_#BAE6FD]",
-										item.courseTypeName === 'SKILLACTIVITIES' && "bg-[#D8B4FE] shadow-[0_0_8px_#D8B4FE]",
-										item.courseTypeName === 'FREE-TALK' && "bg-[#FEF08A] shadow-[0_0_8px_#FEF08A]"
-									)} />
-									{item.planType === 'primary' ? 'PRI' : 'BCK'}
-								</div>
-
-								{/* Course Details */}
-								<div className="flex-1 flex flex-col gap-1.5">
-									<div className="flex flex-wrap items-center gap-2 text-white">
-										<h4 className="text-sm font-bold tracking-tight">{item.syllabus || item.courseName}</h4>
-										<span className="text-[9px] font-black text-orange-600/60 uppercase tracking-widest">
-											{item.courseTypeDisplayName}
-										</span>
-									</div>
-
-									<div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] text-gray-500 font-medium">
-										<span className="flex items-center gap-1.5 leading-none px-2 py-0.5 rounded-md bg-white/5">
-											<Calendar className="w-3 h-3 text-orange-600/50" />
-											{item.day}
-										</span>
-										<span className="flex items-center gap-1.5 leading-none px-2 py-0.5 rounded-md bg-white/5">
-											<Clock className="w-3 h-3 text-orange-600/50" />
-											{item.timeSlotLabel}
-										</span>
-										{item.lecturer && (
-											<span className="flex items-center gap-1.5 leading-none px-2 py-0.5 rounded-md bg-white/5">
-												<div className="w-1.5 h-1.5 rounded-full bg-gray-600" />
-												<span className="text-gray-400">{item.lecturer}</span>
-											</span>
-										)}
-										{item.room && (
-											<span className="flex items-center gap-1.5 leading-none px-2 py-0.5 rounded-md bg-white/5">
-												<MapPin className="w-3 h-3 text-orange-600/50" />
-												{item.room}
-											</span>
-										)}
-									</div>
-								</div>
-
-								{/* Delete Action button */}
-								<Button
-									variant="ghost"
-									size="icon-xs"
-									onClick={() => handleDelete(item.id)}
-									className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-red-500 transition-all"
-								>
-									<Trash2 className="w-3.5 h-3.5" />
-								</Button>
+				{/* Items List */}
+				<div className="flex-1 overflow-y-auto custom-scrollbar">
+					{items.length === 0 ? (
+						<div className="flex flex-col items-center justify-center py-20 text-center">
+							<div className="w-16 h-16 rounded-md bg-white/5 border border-white/10 flex items-center justify-center mb-4">
+								<LayoutGrid className="w-7 h-7 text-gray-700" />
 							</div>
-						))}
-					</div>
-				)}
+							<h3 className="text-sm font-bold text-white mb-1">Your plan is empty</h3>
+							<p className="text-xs text-gray-600 mb-6">Go to the schedule to start building your week</p>
+							<Link href="/dashboard">
+								<Button className="bg-orange-600/90 hover:bg-orange-500 text-white font-bold rounded-md px-6 h-10 shadow-lg shadow-orange-500/10">
+									Return to Schedule
+								</Button>
+							</Link>
+						</div>
+					) : (
+						<div className="divide-y divide-white/5">
+							{/* Primary Section */}
+							{primaryItems.length > 0 && (
+								<div>
+									<div className="flex items-center gap-2 px-5 py-2.5 bg-orange-600/5">
+										<ShieldCheck className="w-3.5 h-3.5 text-orange-500" />
+										<span className="text-[10px] font-bold text-orange-500/80 uppercase tracking-widest">Primary Classes</span>
+										<span className="ml-auto text-[10px] font-bold text-gray-600">{primaryItems.length} selected</span>
+									</div>
+									{primaryItems.map(item => (
+										<CourseRow key={item.id} item={item} onDelete={handleDelete} deleting={deletingId === item.id} />
+									))}
+								</div>
+							)}
+
+							{/* Backup Section */}
+							{backupItems.length > 0 && (
+								<div>
+									<div className="flex items-center gap-2 px-5 py-2.5 bg-blue-600/5">
+										<div className="w-3.5 h-3.5 rounded-full border-2 border-blue-500/50 flex items-center justify-center">
+											<div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+										</div>
+										<span className="text-[10px] font-bold text-blue-400/80 uppercase tracking-widest">Backup Classes</span>
+										<span className="ml-auto text-[10px] font-bold text-gray-600">{backupItems.length} selected</span>
+									</div>
+									{backupItems.map((item, idx) => (
+										<CourseRow key={item.id} item={item} index={idx + 1} onDelete={handleDelete} deleting={deletingId === item.id} />
+									))}
+								</div>
+							)}
+						</div>
+					)}
+				</div>
 			</div>
+		</div>
+	);
+}
+
+function CourseRow({ item, index, onDelete, deleting }: { item: CartItem; index?: number; onDelete: (id: string) => void; deleting: boolean }) {
+	const colors = COURSE_TYPE_COLORS[item.courseTypeName];
+	const isPrimary = item.planType === 'primary';
+
+	return (
+		<div className={cn(
+			"flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.04] transition-colors group",
+			!isPrimary && "opacity-70"
+		)}>
+			{/* Type Badge */}
+			<div className={cn(
+				"shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[9px] font-bold uppercase tracking-widest border",
+				isPrimary
+					? "bg-orange-700/10 text-orange-500 border-orange-600/20"
+					: "bg-blue-700/10 text-blue-400 border-blue-600/20"
+			)}>
+				<div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", colors?.dot.split(' ')[0] || 'bg-orange-500')} />
+				{isPrimary ? 'PRI' : `BCK ${index ?? ''}`}
+			</div>
+
+			{/* Main Details */}
+			<div className="flex-1 min-w-0">
+				<div className="flex items-center gap-2 mb-1">
+					<h4 className="text-sm font-bold text-white truncate">{item.syllabus || item.courseName}</h4>
+					<span className={cn("shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full border", colors?.bg, colors?.text, colors?.border)}>
+						{item.courseTypeDisplayName}
+					</span>
+				</div>
+				<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+					<span className="flex items-center gap-1.5 text-[10px] text-gray-500">
+						<Calendar className="w-3 h-3 text-orange-600/40" />
+						{item.day}
+					</span>
+					<span className="flex items-center gap-1.5 text-[10px] text-gray-500">
+						<Clock className="w-3 h-3 text-orange-600/40" />
+						{item.timeSlotLabel}
+					</span>
+					{item.lecturer && (
+						<span className="flex items-center gap-1.5 text-[10px] text-gray-500">
+							<div className="w-1 h-1 rounded-full bg-gray-700" />
+							{item.lecturer}
+						</span>
+					)}
+					{item.room && (
+						<span className="flex items-center gap-1.5 text-[10px] text-gray-500">
+							<MapPin className="w-3 h-3 text-orange-600/40" />
+							{item.room}
+						</span>
+					)}
+				</div>
+			</div>
+
+			{/* Delete Button */}
+			<Button
+				variant="ghost"
+				size="icon"
+				onClick={() => onDelete(item.id)}
+				disabled={deleting}
+				className="shrink-0 opacity-0 group-hover:opacity-100 w-8 h-8 text-gray-600 hover:text-red-500 hover:bg-red-500/10 transition-all rounded-md"
+			>
+				<Trash2 className="w-3.5 h-3.5" />
+			</Button>
 		</div>
 	);
 }

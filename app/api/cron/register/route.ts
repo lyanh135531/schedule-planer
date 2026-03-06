@@ -11,7 +11,7 @@ import { decrypt } from '@/lib/crypto';
  * Triggered by a cron job (e.g., every Sunday at 9 AM)
  * Registers courses for all users according to their plans.
  */
-export async function POST(req: Request) {
+export async function GET(req: Request) {
 	const authHeader = req.headers.get('Authorization');
 	const secret = process.env.CRON_SECRET;
 

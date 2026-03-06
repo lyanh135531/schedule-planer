@@ -17,7 +17,7 @@
         "docker:up": "docker-compose up -d --build",
         "docker:down": "docker-compose down",
         "docker:restart": "npm run docker:down && npm run docker:up && npm run db:setup",
-        "cron:trigger": "sh scripts/trigger-cron.sh"
+        "cron:trigger": "tsx --env-file=.env.local scripts/trigger-cron.ts"
     },
     "dependencies": {
         "@neondatabase/serverless": "^1.0.2",

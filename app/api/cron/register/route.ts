@@ -25,11 +25,21 @@ export async function GET(req: Request) {
 		const allUsers = await db.select().from(users);
 		const allCourseTypes = await db.select().from(courseTypes).orderBy(asc(courseTypes.registrationOrder));
 
-		// Process all users in parallel
+		// Process all users in parallel with individual error handling
 		const results = await Promise.all(
 			allUsers.map(async (user) => {
-				const userResults = await processUserRegistration(user.id, allCourseTypes);
-				return { userId: user.id, email: user.email, ...userResults };
+				try {
+					const userResults = await processUserRegistration(user.id, allCourseTypes);
+					return { userId: user.id, email: user.email, ...userResults };
+				} catch (e) {
+					console.error(`[Cron] Critical failure for user ${user.email}:`, e);
+					return { 
+						userId: user.id, 
+						email: user.email, 
+						status: 'failed', 
+						reason: e instanceof Error ? e.message : 'Unknown fatal error' 
+					};
+				}
 			})
 		);
 

@@ -110,7 +110,7 @@ export class TalkFirstService {
     /**
      * Get list of classes for a specific week
      * @param token Access token
-     * @param date Monday of the week in YYYY-MM-DD format. If omitted, uses current week's Monday.
+     * @param date Monday of the week in YYYY-MM-DD format. If omitted, uses next week's Monday.
      */
     static async getClasses(
         token: string,
@@ -121,9 +121,9 @@ export class TalkFirstService {
         if (!targetDate) {
             const now = new Date();
             const day = now.getDay();
-            const diff = now.getDate() - (day === 0 ? 6 : day - 1);
-            const monday = new Date(now.setDate(diff));
-            targetDate = monday.toISOString().split('T')[0];
+            const diff = now.getDate() - (day === 0 ? 6 : day - 1) + 7;
+            const nextMonday = new Date(now.setDate(diff));
+            targetDate = nextMonday.toISOString().split('T')[0];
         }
 
         console.log(`[TalkFirstService] Fetching classes for date: ${targetDate}`);

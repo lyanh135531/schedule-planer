@@ -7,6 +7,7 @@
 export interface RegistrationResult {
     success: boolean;
     message: string;
+    statusCode?: number;
     apiResponse?: Record<string, unknown>;
 }
 
@@ -32,6 +33,7 @@ export class TalkFirstService {
                         Accept: 'application/json',
                     },
                     body: JSON.stringify({ email, password }),
+                    signal: AbortSignal.timeout(10000), // 10 second timeout
                 },
             );
 
@@ -79,6 +81,7 @@ export class TalkFirstService {
                         Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify({ flexibleClassScheduleId: classId }),
+                    signal: AbortSignal.timeout(15000), // 15 second timeout for registration
                 },
             );
 
@@ -88,12 +91,14 @@ export class TalkFirstService {
                 return {
                     success: true,
                     message: data.message || 'Registration successful',
+                    statusCode: response.status,
                     apiResponse: data,
                 };
             } else {
                 return {
                     success: false,
                     message: data.message || data.error || 'Registration failed',
+                    statusCode: response.status,
                     apiResponse: data,
                 };
             }
@@ -141,6 +146,7 @@ export class TalkFirstService {
                     Accept: 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
+                signal: AbortSignal.timeout(10000), // 10 second timeout
             });
 
             if (!response.ok) {

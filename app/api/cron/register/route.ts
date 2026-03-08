@@ -203,13 +203,14 @@ async function processUserRegistration(
                 // CHECK CONFLICTS with all successfully registered courses (including other primaries)
                 const hasConflict = registeredCourses.some(
                     (reg) =>
-                        reg.day === backup.day &&
-                        isOverlapping(
-                            reg.startTime!,
-                            reg.endTime!,
-                            backup.startTime!,
-                            backup.endTime!,
-                        ),
+                        reg.courseName === backup.courseName || // Same course already registered
+                        (reg.day === backup.day &&
+                            isOverlapping(
+                                reg.startTime!,
+                                reg.endTime!,
+                                backup.startTime!,
+                                backup.endTime!,
+                            )),
                 );
 
                 if (hasConflict) {
@@ -220,7 +221,8 @@ async function processUserRegistration(
                         .update(userCoursePlans)
                         .set({
                             status: 'skipped',
-                            failedReason: 'Time conflict with registered courses',
+                            failedReason:
+                                'Time conflict or same course already registered',
                         })
                         .where(eq(userCoursePlans.id, backup.id));
                     continue;

@@ -10,6 +10,7 @@ services:
         environment:
             - DATABASE_URL=postgresql://postgres:password@db:5432/talkfirst
             - CRON_SECRET=${CRON_SECRET}
+            - ENCRYPTION_KEY=${ENCRYPTION_KEY}
             - TZ=Asia/Ho_Chi_Minh
         depends_on:
             - db

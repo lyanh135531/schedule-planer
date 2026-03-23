@@ -69,16 +69,16 @@ export default function LoginPage() {
 			{/* Main Content */}
 			<div className="relative z-10 w-full max-w-[440px] px-6 animate-in fade-in slide-in-from-bottom-8 duration-1000">
 				{/* Logo Section */}
-				<div className="flex flex-col items-center mb-10 space-y-4">
-					<div className="w-16 h-16 rounded-md bg-gradient-to-br from-[#E85A21] to-[#D14A15] flex items-center justify-center shadow-[0_0_40px_rgba(232,90,33,0.4)] relative group transition-transform duration-500 hover:scale-110">
+				<div className="flex flex-col items-center mb-6 md:mb-10 space-y-3 md:space-y-4">
+					<div className="w-14 h-14 md:w-16 md:h-16 rounded-md bg-gradient-to-br from-[#E85A21] to-[#D14A15] flex items-center justify-center shadow-[0_0_40px_rgba(232,90,33,0.4)] relative group transition-transform duration-500 hover:scale-110">
 						<div className="absolute inset-0 rounded-md bg-orange-400 blur-xl opacity-0 group-hover:opacity-40 transition-opacity" />
-						<span className="text-white font-black italic text-4xl leading-none select-none transform translate-x-[-4px]">T</span>
+						<span className="text-white font-black italic text-3xl md:text-4xl leading-none select-none transform translate-x-[-4px]">T</span>
 					</div>
 					<div className="text-center space-y-1">
-						<h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
+						<h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter uppercase italic">
 							TalkFirst <span className="text-orange-600">Support</span>
 						</h1>
-						<p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.4em] translate-y-[-2px]">
+						<p className="hidden md:block text-[10px] text-gray-500 font-bold uppercase tracking-[0.4em] translate-y-[-2px]">
 							Premium Automation Hub
 						</p>
 					</div>
@@ -89,12 +89,12 @@ export default function LoginPage() {
 					{/* Inner Card Glow */}
 					<div className="absolute -top-[50%] -left-[50%] w-[200%] h-[200%] bg-gradient-to-br from-orange-500/10 via-transparent to-blue-500/10 rotate-12 pointer-events-none transition-transform duration-1000 group-hover:scale-110" />
 
-					<div className="relative bg-[#161923]/60 backdrop-blur-3xl rounded-md p-8 md:p-10 border border-white/5 space-y-8">
-						<div className="space-y-2">
-							<h2 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-								Welcome back <Sparkles className="w-5 h-5 text-orange-500 animate-pulse" />
+					<div className="relative bg-[#161923]/60 backdrop-blur-3xl rounded-md p-6 md:p-10 border border-white/5 space-y-6 md:space-y-8">
+						<div className="space-y-1 md:space-y-2">
+							<h2 className="text-xl md:text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+								Welcome back <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-orange-500 animate-pulse" />
 							</h2>
-							<p className="text-sm text-gray-400 font-medium">
+							<p className="hidden md:block text-sm text-gray-400 font-medium">
 								Enter your credentials to access the dashboard
 							</p>
 						</div>
@@ -116,7 +116,7 @@ export default function LoginPage() {
 											value={email}
 											onChange={(e) => setEmail(e.target.value)}
 											required
-											className="w-full bg-black/40 border border-white/10 rounded-md py-4 pl-12 pr-4 text-sm text-white placeholder:text-gray-700 focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all outline-none"
+											className="w-full bg-black/40 border border-white/10 rounded-md py-3 md:py-4 pl-12 pr-4 text-sm text-white placeholder:text-gray-700 focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all outline-none"
 										/>
 									</div>
 								</div>
@@ -136,7 +136,7 @@ export default function LoginPage() {
 											value={password}
 											onChange={(e) => setPassword(e.target.value)}
 											required
-											className="w-full bg-black/40 border border-white/10 rounded-md py-4 pl-12 pr-12 text-sm text-white placeholder:text-gray-700 focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all outline-none"
+											className="w-full bg-black/40 border border-white/10 rounded-md py-3 md:py-4 pl-12 pr-12 text-sm text-white placeholder:text-gray-700 focus:outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all outline-none"
 										/>
 										<button
 											type="button"
@@ -162,7 +162,7 @@ export default function LoginPage() {
 							<Button
 								type="submit"
 								disabled={loading}
-								className="w-full h-14 bg-orange-600 hover:bg-orange-700 text-white font-black text-sm uppercase tracking-widest rounded-md shadow-[0_10px_20px_rgba(232,90,33,0.3)] transition-all duration-300 transform active:scale-[0.98] group relative overflow-hidden"
+								className="w-full h-12 md:h-14 bg-orange-600 hover:bg-orange-700 text-white font-black text-sm uppercase tracking-widest rounded-md shadow-[0_10px_20px_rgba(232,90,33,0.3)] transition-all duration-300 transform active:scale-[0.98] group relative overflow-hidden"
 							>
 								{/* Shimmer Effect */}
 								<div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
@@ -184,7 +184,7 @@ export default function LoginPage() {
 						</form>
 
 						{/* Security Footer */}
-						<div className="flex items-center justify-center gap-2 pt-2">
+						<div className="hidden md:flex items-center justify-center gap-2 pt-2">
 							<ShieldCheck className="w-4 h-4 text-gray-600" />
 							<span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">
 								Secure Encrypted Session
@@ -198,7 +198,7 @@ export default function LoginPage() {
 				</div>
 
 				{/* Footer Meta */}
-				<div className="mt-12 opacity-50 hover:opacity-100 transition-opacity">
+				<div className="mt-8 md:mt-12 opacity-50 hover:opacity-100 transition-opacity">
 					<Footer />
 				</div>
 			</div>

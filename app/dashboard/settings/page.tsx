@@ -91,14 +91,14 @@ export default function SettingsPage() {
 	}
 
 	return (
-		<div className="w-full max-w-4xl mx-auto py-10 space-y-10">
+		<div className="w-full max-w-4xl mx-auto py-2 md:py-10 space-y-4 md:space-y-10">
 			{/* Minimalist Header */}
-			<div className="flex justify-between items-center px-6 md:px-0">
-				<div className="space-y-1">
-					<h1 className="text-3xl font-bold text-white tracking-tight">
+			<div className="flex justify-between items-center px-4 md:px-0">
+				<div className="space-y-0.5">
+					<h1 className="text-xl md:text-3xl font-bold text-white tracking-tight">
 						Course Setup
 					</h1>
-					<p className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+					<p className="text-[9px] md:text-xs text-gray-500 font-bold uppercase tracking-widest hidden sm:block">
 						Weekly Session Targets
 					</p>
 				</div>
@@ -107,65 +107,65 @@ export default function SettingsPage() {
 					<Button
 						onClick={handleSave}
 						disabled={saving}
-						className="h-9 px-5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-[11px] uppercase tracking-wider rounded-md transition-all"
+						className="h-7 md:h-9 px-3 md:px-5 bg-orange-600 hover:bg-orange-700 text-white font-bold text-[9px] md:text-[11px] uppercase tracking-wider rounded-md transition-all shadow-md md:shadow-lg shadow-orange-600/20"
 					>
-						{saving ? 'Saving...' : 'Save Settings'}
+						{saving ? 'Saving...' : <><span className="hidden md:inline">Save Settings</span><span className="md:hidden">Save</span></>}
 					</Button>
 				</div>
 			</div>
 
 			{/* Configuration Section */}
-			<div className="space-y-3 px-6 md:px-0">
+			<div className="space-y-2 md:space-y-3 px-4 md:px-0">
 				{message && (
 					<div className={cn(
-						"p-3 rounded-md text-[11px] font-bold text-center animate-in fade-in slide-in-from-top-1 border",
+						"p-2 md:p-3 rounded-lg md:rounded-xl text-[10px] md:text-[11px] font-bold text-center animate-in fade-in slide-in-from-top-1 border shadow-sm md:shadow-lg",
 						message.type === 'success' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20'
 					)}>
 						{message.text}
 					</div>
 				)}
 
-				<div className="grid gap-2">
+				<div className="grid gap-2 md:gap-3">
 					{settings.map((item) => {
 						const Icon = TYPE_ICONS[item.courseTypeName] || BookOpen;
 						return (
 							<div
 								key={item.courseTypeId}
-								className="flex items-center justify-between p-4 rounded-md bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-all"
+								className="flex flex-row items-center justify-between p-2 md:p-4 rounded-xl md:rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-all gap-2 md:gap-0 shadow-sm md:shadow-xl"
 							>
-								<div className="flex items-center gap-4">
+								<div className="flex flex-row items-center gap-2 md:gap-4 text-left">
 									<div className={cn(
-										"w-10 h-10 rounded-md flex items-center justify-center",
+										"w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shadow-inner shrink-0",
 										(TYPE_COLORS[item.courseTypeName] || { bg: 'bg-orange-500/10' }).bg
 									)}>
 										<Icon className={cn(
-											"w-5 h-5",
+											"w-4 h-4 md:w-5 md:h-5",
 											(TYPE_COLORS[item.courseTypeName] || { icon: 'text-orange-500/80' }).icon
 										)} />
 									</div>
-									<h3 className="text-sm font-bold text-white uppercase tracking-tight">
+									<h3 className="text-[11px] md:text-sm font-black text-white uppercase tracking-tight leading-tight line-clamp-2 md:line-clamp-none max-w-[120px] md:max-w-none">
 										{item.courseTypeDisplayName}
 									</h3>
 								</div>
 
 								{/* Minimal Counter */}
-								<div className="flex items-center gap-1 bg-black/20 p-1 rounded-md border border-white/5">
+								<div className="flex items-center gap-1 bg-black/20 p-1 md:p-1.5 rounded-lg md:rounded-xl border border-white/5 shadow-inner shrink-0">
 									<button
 										onClick={() => adjustCount(item.courseTypeId, -1)}
-										className="w-8 h-8 rounded-md flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+										className="w-7 h-7 md:w-8 md:h-8 rounded-md flex items-center justify-center text-gray-400 hover:text-white bg-white/5 md:bg-transparent hover:bg-white/10 md:hover:bg-white/5 transition-all active:scale-95"
 									>
-										<Minus className="w-3.5 h-3.5" />
+										<Minus className="w-3 h-3 md:w-3.5 md:h-3.5" />
 									</button>
 
-									<div className="w-10 text-center">
-										<span className="text-lg font-bold text-white tabular-nums">{item.requiredCount}</span>
+									<div className="w-6 md:w-12 text-center">
+										<span className="text-sm md:text-lg font-black text-white tabular-nums">{item.requiredCount}</span>
 									</div>
 
 									<button
 										onClick={() => adjustCount(item.courseTypeId, 1)}
-										className="w-8 h-8 rounded-md bg-orange-600/20 text-orange-600 flex items-center justify-center hover:bg-orange-600/30 hover:text-orange-500 transition-all"
+										className="w-7 h-7 md:w-8 md:h-8 rounded-md bg-orange-600/20 text-orange-600 flex items-center justify-center hover:bg-orange-600/30 hover:text-orange-500 transition-all shadow-[0_0_10px_rgba(234,88,12,0.1)] active:scale-95"
 									>
-										<Plus className="w-3.5 h-3.5" />
+										<Plus className="w-3 h-3 md:w-3.5 md:h-3.5" />
 									</button>
 								</div>
 							</div>
@@ -175,8 +175,8 @@ export default function SettingsPage() {
 			</div>
 
 			{/* Clean Status Footer */}
-			<div className="pt-6 border-t border-white/5 text-center">
-				<p className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">
+			<div className="pt-2 md:pt-6 border-t border-white/5 text-center">
+				<p className="text-[8px] md:text-[10px] font-bold text-gray-600 uppercase tracking-widest hidden sm:block">
 					All changes are synced securely with your dashboard
 				</p>
 			</div>

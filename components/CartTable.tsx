@@ -128,27 +128,27 @@ export default function CartTable() {
 	);
 
 	return (
-		<div className="flex-1 flex flex-col gap-4 overflow-hidden">
+		<div className="flex-1 flex flex-col gap-2 md:gap-4 overflow-hidden">
 
 			{/* Stats + Progress Bar Row */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-3 shrink-0">
+			<div className="flex overflow-x-auto md:grid md:grid-cols-3 gap-2 md:gap-4 shrink-0 pb-1 md:pb-0 snap-x snap-mandatory custom-scrollbar">
 				{requirements.map((req) => {
 					const isComplete = req.current >= req.required;
 					const pct = Math.min(100, Math.round((req.current / req.required) * 100));
 					const colors = COURSE_TYPE_COLORS[req.name];
 					return (
 						<div key={req.name} className={cn(
-							"relative overflow-hidden rounded-md p-4 border transition-all",
+							"relative overflow-hidden rounded-lg md:rounded-md p-3 md:p-4 border transition-all min-w-[70%] md:min-w-0 snap-center shrink-0 shadow-sm md:shadow-none",
 							isComplete
 								? "bg-green-500/5 border-green-500/20"
 								: "bg-white/5 border-white/10"
 						)}>
-							<div className="flex items-start justify-between mb-3">
+							<div className="flex items-start justify-between mb-2 md:mb-3">
 								<div>
-									<p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">{req.displayName}</p>
-									<p className={cn("text-2xl font-black", isComplete ? "text-green-400" : "text-white")}>
+									<p className="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">{req.displayName}</p>
+									<p className={cn("text-xl md:text-2xl font-black leading-none", isComplete ? "text-green-400" : "text-white")}>
 										{req.current}
-										<span className="text-sm font-bold text-gray-600 ml-1">/ {req.required}</span>
+										<span className="text-[10px] md:text-sm font-bold text-gray-600 ml-1">/ {req.required}</span>
 									</p>
 								</div>
 								{isComplete
@@ -168,15 +168,17 @@ export default function CartTable() {
 			</div>
 
 			{/* Course List */}
-			<div className="flex-1 overflow-hidden flex flex-col bg-white/[0.02] rounded-md border border-white/10">
+			<div className="flex-1 overflow-hidden flex flex-col bg-white/[0.02] rounded-lg md:rounded-md border border-white/10 shadow-md md:shadow-xl">
 				{/* Table Header */}
-				<div className="flex items-center justify-between px-5 py-3 border-b border-white/10 shrink-0">
-					<div className="flex items-center gap-3">
-						<BookOpen className="w-4 h-4 text-orange-500/70" />
+				<div className="flex items-center justify-between px-3 md:px-5 py-2.5 md:py-3 border-b border-white/10 shrink-0">
+					<div className="flex items-center gap-2 md:gap-3">
+						<BookOpen className="w-3.5 h-3.5 md:w-4 md:h-4 text-orange-500/70" />
 						<div>
-							<h2 className="text-sm font-bold text-white">Weekly Plan</h2>
+							<h2 className="text-[11px] md:text-sm font-bold text-white items-center gap-2 flex">Weekly Plan 
+								<span className="md:hidden text-[9px] text-gray-500 bg-white/5 px-1.5 py-0.5 rounded ml-1">{primaryItems.length + backupItems.length}</span>
+							</h2>
 							{items.length > 0 && (
-								<p className="text-[10px] text-gray-600">
+								<p className="text-[9px] md:text-[10px] text-gray-600 hidden md:block">
 									{primaryItems.length} primary &nbsp;·&nbsp; {backupItems.length} backup
 								</p>
 							)}
@@ -249,10 +251,10 @@ export default function CartTable() {
 							{/* Primary Section */}
 							{primaryItems.length > 0 && (
 								<div>
-									<div className="flex items-center gap-2 px-5 py-2.5 bg-orange-600/5">
-										<ShieldCheck className="w-3.5 h-3.5 text-orange-500" />
-										<span className="text-[10px] font-bold text-orange-500/80 uppercase tracking-widest">Primary Classes</span>
-										<span className="ml-auto text-[10px] font-bold text-gray-600">{primaryItems.length} selected</span>
+									<div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-1.5 md:py-2.5 bg-orange-600/5">
+										<ShieldCheck className="w-3 h-3 md:w-3.5 md:h-3.5 text-orange-500" />
+										<span className="text-[9px] md:text-[10px] font-bold text-orange-500/80 uppercase tracking-widest">Primary Classes</span>
+										<span className="ml-auto text-[9px] md:text-[10px] font-bold text-gray-600">{primaryItems.length} selected</span>
 									</div>
 									{primaryItems.map(item => (
 										<CourseRow key={item.id} item={item} onDelete={handleDelete} deleting={deletingId === item.id} />
@@ -263,12 +265,12 @@ export default function CartTable() {
 							{/* Backup Section */}
 							{backupItems.length > 0 && (
 								<div>
-									<div className="flex items-center gap-2 px-5 py-2.5 bg-blue-600/5">
-										<div className="w-3.5 h-3.5 rounded-full border-2 border-blue-500/50 flex items-center justify-center">
-											<div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+									<div className="flex items-center gap-1.5 md:gap-2 px-3 md:px-5 py-1.5 md:py-2.5 bg-blue-600/5">
+										<div className="w-3 h-3 md:w-3.5 md:h-3.5 rounded-full border-2 border-blue-500/50 flex items-center justify-center">
+											<div className="w-1 h-1 md:w-1.5 md:h-1.5 rounded-full bg-blue-500" />
 										</div>
-										<span className="text-[10px] font-bold text-blue-400/80 uppercase tracking-widest">Backup Classes</span>
-										<span className="ml-auto text-[10px] font-bold text-gray-600">{backupItems.length} selected</span>
+										<span className="text-[9px] md:text-[10px] font-bold text-blue-400/80 uppercase tracking-widest">Backup Classes</span>
+										<span className="ml-auto text-[9px] md:text-[10px] font-bold text-gray-600">{backupItems.length} selected</span>
 									</div>
 									{backupItems.map((item, idx) => (
 										<CourseRow key={item.id} item={item} index={idx + 1} onDelete={handleDelete} deleting={deletingId === item.id} />
@@ -289,46 +291,47 @@ function CourseRow({ item, index, onDelete, deleting }: { item: CartItem; index?
 
 	return (
 		<div className={cn(
-			"flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.04] transition-colors group",
-			!isPrimary && "opacity-70"
+			"flex items-center gap-2 md:gap-4 px-3 md:px-5 py-2 md:py-3.5 hover:bg-white/[0.04] transition-colors group border-b border-white/5 md:border-b-0",
+			!isPrimary && "opacity-[0.85] md:opacity-70"
 		)}>
 			{/* Type Badge */}
 			<div className={cn(
-				"shrink-0 flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[9px] font-bold uppercase tracking-widest border",
+				"shrink-0 flex items-center justify-center min-w-[34px] md:min-w-[48px] gap-1 md:gap-1.5 px-1 md:px-2.5 py-1 md:py-1.5 rounded md:rounded-md text-[7px] md:text-[9px] font-black uppercase tracking-wider md:tracking-widest border",
 				isPrimary
 					? "bg-orange-700/10 text-orange-500 border-orange-600/20"
 					: "bg-blue-700/10 text-blue-400 border-blue-600/20"
 			)}>
-				<div className={cn("w-1.5 h-1.5 rounded-full animate-pulse", colors?.dot.split(' ')[0] || 'bg-orange-500')} />
+				<div className={cn("hidden md:block w-1.5 h-1.5 rounded-full animate-pulse", colors?.dot.split(' ')[0] || 'bg-orange-500')} />
 				{isPrimary ? 'PRI' : `BCK ${index ?? ''}`}
 			</div>
 
 			{/* Main Details */}
 			<div className="flex-1 min-w-0">
-				<div className="flex items-center gap-2 mb-1">
-					<h4 className="text-sm font-bold text-white truncate">{item.syllabus || item.courseName}</h4>
-					<span className={cn("shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full border", colors?.bg, colors?.text, colors?.border)}>
+				<div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1">
+					<h4 className="text-[11px] md:text-sm font-black text-white truncate">{item.syllabus || item.courseName}</h4>
+					<span className={cn("hidden md:inline-flex shrink-0 text-[9px] font-bold px-2 py-0.5 rounded-full border", colors?.bg, colors?.text, colors?.border)}>
 						{item.courseTypeDisplayName}
 					</span>
 				</div>
-				<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-					<span className="flex items-center gap-1.5 text-[10px] text-gray-500">
-						<Calendar className="w-3 h-3 text-orange-600/40" />
+				<div className="flex flex-wrap items-center gap-x-2 md:gap-x-3 gap-y-0.5 md:gap-y-1">
+					<span className="flex items-center gap-1 md:gap-1.5 text-[8px] md:text-[10px] font-bold text-gray-500">
+						<Calendar className="w-2.5 h-2.5 md:w-3 md:h-3 text-orange-500/50" />
 						{item.day}
 					</span>
-					<span className="flex items-center gap-1.5 text-[10px] text-gray-500">
-						<Clock className="w-3 h-3 text-orange-600/40" />
+					<span className="flex items-center gap-1 md:gap-1.5 text-[8px] md:text-[10px] font-bold text-gray-500">
+						<Clock className="w-2.5 h-2.5 md:w-3 md:h-3 text-orange-500/50" />
 						{item.timeSlotLabel}
 					</span>
 					{item.lecturer && (
-						<span className="flex items-center gap-1.5 text-[10px] text-gray-500">
-							<div className="w-1 h-1 rounded-full bg-gray-700" />
-							{item.lecturer}
+						<span className="flex items-center gap-1 md:gap-1.5 text-[8px] md:text-[10px] font-bold text-gray-500">
+							<div className="hidden md:block w-1 h-1 rounded-full bg-gray-700" />
+							<span className="md:hidden opacity-50">👤</span>
+							<span className="line-clamp-1 max-w-[65px] md:max-w-none">{item.lecturer}</span>
 						</span>
 					)}
 					{item.room && (
-						<span className="flex items-center gap-1.5 text-[10px] text-gray-500">
-							<MapPin className="w-3 h-3 text-orange-600/40" />
+						<span className="flex items-center gap-1 md:gap-1.5 text-[8px] md:text-[10px] font-bold text-gray-500">
+							<MapPin className="w-2.5 h-2.5 md:w-3 md:h-3 text-orange-500/50" />
 							{item.room}
 						</span>
 					)}
@@ -341,9 +344,9 @@ function CourseRow({ item, index, onDelete, deleting }: { item: CartItem; index?
 				size="icon"
 				onClick={() => onDelete(item.id)}
 				disabled={deleting}
-				className="shrink-0 opacity-0 group-hover:opacity-100 w-8 h-8 text-gray-600 hover:text-red-500 hover:bg-red-500/10 transition-all rounded-md"
+				className="shrink-0 w-7 h-7 md:w-8 md:h-8 text-gray-500 hover:text-red-500 hover:bg-red-500/10 transition-all rounded-md md:opacity-0 md:group-hover:opacity-100"
 			>
-				<Trash2 className="w-3.5 h-3.5" />
+				<Trash2 className="w-3 h-3 md:w-3.5 md:h-3.5" />
 			</Button>
 		</div>
 	);

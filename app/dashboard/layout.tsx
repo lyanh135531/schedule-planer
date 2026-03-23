@@ -33,11 +33,13 @@ export default async function DashboardLayout({
 
 			<Navbar userEmail={user?.email || 'User'} />
 
-			<main className="flex-1 pt-24 pb-4 w-full overflow-hidden flex flex-col">
+			<main className="flex-1 pt-24 pb-24 md:pb-4 w-full overflow-hidden flex flex-col">
 				{children}
 			</main>
 
-			<Footer />
+			<div className="hidden md:block">
+				<Footer />
+			</div>
 		</div>
 	);
 }
